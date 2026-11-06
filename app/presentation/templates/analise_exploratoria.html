@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Análise exploratória — Manutenção Preditiva{% endblock %}
+{% block content %}
+  <h1>Análise exploratória e descritiva</h1>
+  <p class="muted">
+    MTBF, tendência do tempo de reparo e sazonalidade de falhas, calculados a partir
+    do histórico tratado. Conteúdo descritivo, separado da modelagem preditiva — nada
+    aqui é usado como feature dos modelos de classificação.
+  </p>
+
+  <div class="card">
+    <h2>Comparação consolidada por equipamento</h2>
+    <p class="muted">
+      <strong>Proporção de eventos corretivos</strong> = eventos de falha (MC/CP) ÷ total de eventos
+      do equipamento (não é uma taxa por unidade de tempo). <strong>MTBF</strong> = intervalo médio
+      de calendário, em dias, entre falhas consecutivas. <strong>Tempo médio de reparo</strong> =
+      média de HH Apropriado (horas apropriadas por apontamento, valores já perturbados).
+    </p>
+    <table>
+      <thead>
+        <tr><th>TAG</th><th>Eventos</th>
+          <th title="Eventos de falha (MC/CP) dividido pelo total de eventos do equipamento.">Proporção de eventos corretivos</th>
+          <th>Tempo médio de reparo (HH)</th>
+          <th title="MTBF (Mean Time Between Failures — Tempo Médio Entre Falhas): intervalo médio de calendário, em dias, entre uma falha e a próxima do mesmo equipamento.">MTBF (dias de calendário)</th></tr>
+      </thead>
+      <tbody>
+        {% for c in comparacao %}
+          <tr>
+            <td><a href="/equipamentos/{{ c.tag_code }}">{{ c.tag_code }}</a></td>
+            <td>{{ c.n_eventos }}</td>
+            <td>{{ c.n_falhas }}/{{ c.n_eventos }} = {{ "%.1f"|format(c.pct_eventos_corretivos) }}%</td>
+            <td>{{ "%.2f"|format(c.tempo_medio_reparo_h) }} h</td>
+            <td>{{ "%.1f"|format(c.mtbf_dias) + " dias" if c.mtbf_dias is not none else "sem falhas suficientes" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>MTBF — tempo médio entre falhas</h2>
+    <p class="muted">
+      <strong>MTBF (Mean Time Between Failures — Tempo Médio Entre Falhas)</strong>: média, em dias
+      de calendário (não horas de operação), das diferenças entre as datas ("Início") de falhas
+      consecutivas do mesmo equipamento; falhas no mesmo dia contam como intervalo 0.
+      Calculado sobre os eventos classificados como falha (MC/CP). Equipamentos com menos de duas
+      falhas registradas não têm MTBF definido (barra cinza).
+    </p>
+    <img class="grafico" src="data:image/png;base64,{{ grafico_mtbf }}">
+  </div>
+
+  <div class="card">
+    <h2>Tendência do tempo de reparo ao longo do tempo</h2>
+    <p class="muted">
+      Cada painel mostra o HH Apropriado de cada intervenção do equipamento ao longo dos
+      anos, com uma reta de tendência (regressão linear simples). Uma inclinação positiva
+      sugere tempo de reparo crescente — possível sinal de degradação.
+    </p>
+    <img class="grafico" src="data:image/png;base64,{{ grafico_tendencia }}">
+  </div>
+
+  <div class="card">
+    <h2>Sazonalidade</h2>
+    <p class="muted">Contagem de falhas por mês do calendário, somando todos os anos e todos os equipamentos.</p>
+    <img class="grafico" src="data:image/png;base64,{{ grafico_sazonalidade }}">
+  </div>
+{% endblock %}

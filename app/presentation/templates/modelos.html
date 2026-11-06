@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Modelos — Manutenção Preditiva{% endblock %}
+{% block content %}
+  <h1>Modelos</h1>
+  <p class="muted">Métricas e gráficos de avaliação no conjunto de teste, por horizonte de previsão.</p>
+
+  <div class="card">
+    <h2>Glossário das métricas</h2>
+    <table>
+      <tbody>
+        <tr><td><strong>Acurácia</strong></td><td>Percentual geral de acertos do modelo (pouco informativa aqui: a proporção de falhas na janela é alta e varia muito entre equipamentos e horizontes, então até um classificador que sempre prevê "falha" acerta bastante).</td></tr>
+        <tr><td><strong>Precisão</strong></td><td>De todas as vezes que o modelo alertou "vai falhar", quantas realmente falharam.</td></tr>
+        <tr><td><strong>Recall</strong></td><td>De todas as falhas que realmente aconteceram, quantas o modelo conseguiu identificar.</td></tr>
+        <tr><td><strong>F1 (F1-score)</strong></td><td>Média harmônica entre precisão e recall — resume o equilíbrio entre os dois numa métrica só.</td></tr>
+        <tr><td><strong>ROC-AUC</strong></td><td>Mede a capacidade do modelo de distinguir entre "vai falhar" e "não vai falhar" em geral; varia de 0,5 (chute aleatório) a 1,0 (perfeito).</td></tr>
+        <tr><td><strong>PR-AUC</strong></td><td>Parecida com a ROC-AUC, mas depende da proporção de falhas nos dados: o valor de um classificador sem informação é essa própria proporção (não 0); varia de 0 a 1, quanto maior melhor.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  {% for h in horizontes %}
+    {% set meta = metas.get(h) %}
+    <div class="card">
+      <h2>falha_{{ h }}d — {{ meta.modelo if meta else "não treinado" }}</h2>
+      {% if meta %}
+        <p class="muted">
+          Threshold operacional: {{ "%.3f"|format(meta.threshold_operacional) }}
+          (alvo: recall ≥ {{ meta.recall_desejado }}, escolhido nas predições out-of-fold do desenvolvimento) ·
+          Divisão por equipamento: desenvolvimento {{ meta.tags_desenvolvimento|join(", ") }}
+          (validação cruzada {{ meta.validacao_cruzada }}) · teste {{ meta.tags_teste|join(", ") }} ·
+          {{ meta.n_treino }} linhas de desenvolvimento / {{ meta.n_teste }} de teste
+        </p>
+        <table>
+          <thead><tr><th>Métrica</th><th>Threshold 0.50</th><th>Threshold operacional</th></tr></thead>
+          <tbody>
+            {% set titulos = {
+              "Accuracy": "Percentual geral de acertos (ver glossário acima).",
+              "Precision": "De todo alerta de falha, quantos realmente falharam.",
+              "Recall": "De toda falha real, quantas o modelo identificou.",
+              "F1": "Média harmônica entre precisão e recall.",
+              "ROC-AUC": "Capacidade de distinguir as classes; 0,5 = chute, 1,0 = perfeito.",
+              "PR-AUC": "Como ROC-AUC, mas o valor sem informação é a proporção de falhas nos dados de teste.",
+            } %}
+            {% for m in ["Accuracy","Precision","Recall","F1","ROC-AUC","PR-AUC"] %}
+              <tr>
+                <td title="{{ titulos[m] }}">{{ m }}</td>
+                <td>{{ "%.3f"|format(meta.metricas_teste_threshold_050[m]) }}</td>
+                <td>{{ "%.3f"|format(meta.metricas_teste_threshold_otimo[m]) }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="grid grid-2" style="margin-top:16px;">
+          <img class="grafico" src="/figuras/falha_{{ h }}d_matriz_confusao.png">
+          <img class="grafico" src="/figuras/falha_{{ h }}d_roc.png">
+          <img class="grafico" src="/figuras/falha_{{ h }}d_precision_recall.png">
+          <img class="grafico" src="/figuras/falha_{{ h }}d_threshold.png">
+          <img class="grafico" src="/figuras/falha_{{ h }}d_calibracao.png">
+          <img class="grafico" src="/figuras/falha_{{ h }}d_permutation_importance.png">
+        </div>
+      {% else %}
+        <p>Execute <code>python scripts/run_training.py</code> para treinar este horizonte.</p>
+      {% endif %}
+    </div>
+  {% endfor %}
+{% endblock %}

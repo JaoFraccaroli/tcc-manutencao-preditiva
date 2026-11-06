@@ -1,0 +1,32 @@
+descricao;componente_esperado;por_que
+porta não abre;Portas / travas;caso simples
+PORTA NÃO ABRE;Portas / travas;maiúsculas
+portas emperradas;Portas / travas;plural casa (o termo começa a palavra)
+portão de acesso;Portas / travas;"porta" no início da palavra
+exportação parada;não identificado;"porta" no meio da palavra não conta
+comporta;não identificado;"porta" no meio da palavra não conta
+trava quebrada;Portas / travas;"trava" como palavra inteira
+travas soltas;Portas / travas;plural de "trava"
+monta carga travado;não identificado;"travado" descreve a máquina e não a peça
+travando na subida;não identificado;"travando" também não conta
+motor queimado;Motor elétrico;caso simples
+motor e porta com defeito;Motor elétrico;desempate: o primeiro da lista vence
+sensor da porta;Sensores / fim de curso;desempate: sensor vem antes de porta
+fim de curso desregulado;Sensores / fim de curso;termo com espaços
+cabo de aço desgastado;Cabos de aço;acento é ignorado
+cabos de aço;Cabos de aço;plural
+painél queimado;Painel elétrico;acento errado é ignorado
+redutor vazando;Redutor;caso simples
+engrenagem quebrada;Redutor;sinônimo
+rolamento com ruído;Rolamentos;caso simples
+polia solta;Polias / roletes;caso simples
+freio não segura;Freio eletromagnético;caso simples
+contator colado;Contatores / comandos;caso simples
+guia torta;Trilhos / guias;caso simples
+fiação exposta;Cabos elétricos móveis;caso simples
+curto-circuito no quadro;Cabos elétricos móveis;termo com hífen
+tambor riscado;Tambor de enrolamento;caso simples
+plataforma desnivelada;Estrutura da plataforma;caso simples
+[equip] parado;não identificado;marcador de equipamento não é componente
+monta carga parou de funcionar;não identificado;sem palavra-chave
+;não identificado;descrição vazia

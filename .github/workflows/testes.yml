@@ -1,0 +1,39 @@
+name: Testes
+
+on: [push, pull_request]
+
+jobs:
+  qualidade:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt -r requirements-teste.txt
+
+      - name: Testes (Pytest + BDD) com cobertura mínima de 90%
+        run: >
+          pytest
+          --cov=app --cov-fail-under=90
+          --cov-report=term --cov-report=xml:relatorios/cobertura.xml --cov-report=html:relatorios/cobertura-html
+          --junitxml=relatorios/junit.xml
+          --cucumberjson=relatorios/cucumber.json
+
+      - name: Teste de mutação
+        run: python qualidade/mutacao.py
+
+      - name: Resumo de qualidade
+        if: always()
+        run: python qualidade/resumo.py | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Publicar relatórios
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorios-de-qualidade
+          path: relatorios/
+          if-no-files-found: ignore

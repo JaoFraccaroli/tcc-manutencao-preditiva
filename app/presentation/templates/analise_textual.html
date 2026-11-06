@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Descrições de falha — Manutenção Preditiva{% endblock %}
+{% block content %}
+  <h1>Categorização das descrições de falha</h1>
+  <p class="muted">
+    Análise exploratória sobre o texto livre da OS ({{ total_descricoes }} descrições de
+    intervenções classificadas como falha). As categorias abaixo não foram definidas de
+    antemão — são descobertas a partir dos bigramas e palavras mais frequentes nas
+    próprias descrições. Análise puramente descritiva: não alimenta o modelo preditivo.
+  </p>
+
+  <div class="aviso">
+    {{ "%.1f"|format(pct_nao_identificado) }}% das descrições não se encaixam em nenhum
+    padrão frequente o suficiente e ficam em "outro / não identificado". A categorização
+    é derivada de texto livre da OS, não de um campo estruturado do sistema de origem —
+    tratar como indicativo, não exaustivo.
+  </div>
+
+  <div class="card">
+    <h2>Categorias encontradas</h2>
+    <div class="grid grid-2">
+      <table>
+        <thead><tr><th>Categoria</th><th>Ocorrências</th><th>%</th></tr></thead>
+        <tbody>
+          {% for c in categorias %}
+            <tr>
+              <td>{{ c.categoria }}</td>
+              <td>{{ c.ocorrencias }}</td>
+              <td>{{ "%.1f"|format(c.percentual) }}%</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <img class="grafico" src="data:image/png;base64,{{ grafico_categorias }}">
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Como as categorias foram descobertas</h2>
+    <p class="muted">
+      Frequência de palavras isoladas e de bigramas (pares de palavras consecutivas) nas
+      descrições de falha, após normalização de texto (minúsculas, remoção de acentos e
+      pontuação) e remoção de palavras funcionais, do nome do equipamento e de termos de
+      localização (linha, área) — mantendo negações como "não"/"sem", que carregam
+      sentido de falha. As categorias da tabela acima são os bigramas/palavras mais
+      frequentes usados como critério de agrupamento.
+    </p>
+    <div class="grid grid-2">
+      <img class="grafico" src="data:image/png;base64,{{ grafico_palavras }}">
+      <img class="grafico" src="data:image/png;base64,{{ grafico_bigramas }}">
+    </div>
+  </div>
+{% endblock %}

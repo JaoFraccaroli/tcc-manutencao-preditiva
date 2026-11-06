@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Componentes — Manutenção Preditiva{% endblock %}
+{% block content %}
+  <h1>Cadastro de componentes</h1>
+  <p class="muted">
+    Catálogo de referência técnica geral sobre os tipos de componente de um monta-carga
+    (fabricantes de referência, vida útil típica, critério de substituição) — conhecimento de
+    engenharia sobre o tipo de equipamento, não dado específico da empresa em estudo.
+  </p>
+
+  <details class="form-nova">
+    <summary>+ Cadastrar novo componente</summary>
+    <form class="form-cadastro" method="post" action="/componentes">
+      <div>
+        <label for="nome">Nome *</label>
+        <input type="text" id="nome" name="nome" required placeholder="ex.: Corrente de tração">
+      </div>
+      <div>
+        <label for="fabricante_referencia">Fabricante de referência</label>
+        <input type="text" id="fabricante_referencia" name="fabricante_referencia">
+      </div>
+      <div>
+        <label for="vida_util_indicada">Vida útil indicada</label>
+        <input type="text" id="vida_util_indicada" name="vida_util_indicada">
+      </div>
+      <div>
+        <label for="unidade">Unidade</label>
+        <input type="text" id="unidade" name="unidade" placeholder="ex.: Ciclos, Horas de operação">
+      </div>
+      <div>
+        <label for="criterio_substituicao">Critério de substituição</label>
+        <input type="text" id="criterio_substituicao" name="criterio_substituicao">
+      </div>
+      <div>
+        <label for="termos_busca">Termos de busca (separados por vírgula)</label>
+        <input type="text" id="termos_busca" name="termos_busca" placeholder="ex.: corrente, elo">
+      </div>
+      <button type="submit">Cadastrar componente</button>
+    </form>
+    <p class="muted">
+      Cadastrar aqui adiciona o componente ao catálogo exibido nesta tela. Os termos de busca
+      só passam a valer para a classificação automática de novos eventos depois de também
+      atualizar <code>TERMOS_COMPONENTE</code> em <code>app/processing/component_mapping.py</code>
+      e reprocessar a ingestão — o cadastro pela tela não retreina nem reclassifica nada sozinho.
+    </p>
+  </details>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Componente</th><th>Fabricante de referência</th><th>Vida útil indicada</th>
+          <th>Unidade</th><th>Critério de substituição</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in catalogo %}
+          <tr>
+            <td>{{ c.nome }}</td>
+            <td>{{ c.fabricante_referencia or "—" }}</td>
+            <td>{{ c.vida_util_indicada or "—" }}</td>
+            <td>{{ c.unidade or "—" }}</td>
+            <td>{{ c.criterio_substituicao or "—" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h1>Componente estimado por evento de falha</h1>
+  <div class="aviso">
+    <strong>Isto é uma estimativa por palavra-chave, não um campo medido pelo sistema de
+    origem.</strong> O CMMS não registra qual componente falhou em cada evento — só existe a
+    descrição livre da OS. A correspondência usa os termos de busca de cada componente (coluna
+    "termos de busca" abaixo) sobre o texto normalizado; quando a descrição bate com mais de um
+    componente, fica com o primeiro na ordem do catálogo. {{ "%.1f"|format(pct_nao_identificado) }}%
+    das {{ total_falhas }} falhas não batem com nenhum termo e ficam em "não identificado" —
+    esperado de uma estimativa sobre texto livre, não é erro do cálculo. Clique numa categoria
+    abaixo para ver as descrições reais que a geraram.
+  </div>
+
+  <div class="card">
+    <h2>Distribuição estimada</h2>
+    <div class="grid grid-2">
+      <table>
+        <thead><tr><th>Componente</th><th>Ocorrências</th><th>%</th></tr></thead>
+        <tbody>
+          {% for r in resumo %}
+            <tr>
+              <td><a href="{{ url_for('main.componente_exemplos', nome=r.componente) }}">{{ r.componente }}</a></td>
+              <td>{{ r.ocorrencias }}</td>
+              <td>{{ "%.1f"|format(r.percentual) }}%</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <img class="grafico" src="data:image/png;base64,{{ grafico_componentes }}">
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Termos de busca usados (por componente)</h2>
+    <table>
+      <thead><tr><th>Componente</th><th>Termos de busca</th></tr></thead>
+      <tbody>
+        {% for c in catalogo %}
+          <tr><td>{{ c.nome }}</td><td>{{ c.termos_busca or "—" }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}{{ tag_code }} — Manutenção Preditiva{% endblock %}
+{% block content %}
+  <a class="voltar" href="/equipamentos">&larr; Voltar para equipamentos</a>
+  <h1>{{ tag_code }}{% if maquina and maquina.tipo %} — {{ maquina.tipo }}{% endif %}</h1>
+  <p class="muted">
+    Área: {{ snapshot.area or "—" }} · Sistema operacional: {{ snapshot.sist_oper or "—" }} ·
+    Indicadores calculados em {{ snapshot.data_referencia|data_br }}
+  </p>
+
+  <div class="card">
+    <h2>Dados cadastrais <a href="/maquinas/{{ tag_code }}/editar" style="font-size:0.8rem;">(editar)</a></h2>
+    <p class="muted">
+      Cadastro manual, preenchido pelo usuário — não vem da planilha histórica e não entra em
+      nenhuma feature do modelo (briefing complementar 4, seção 2).
+    </p>
+    <table>
+      <tbody>
+        <tr><td>Status</td><td>{{ maquina.status if maquina else "—" }}</td></tr>
+        <tr><td>Fabricante</td><td>{{ (maquina.fabricante if maquina else none) or "não informado" }}</td></tr>
+        <tr><td>Modelo</td><td>{{ (maquina.modelo if maquina else none) or "não informado" }}</td></tr>
+        <tr><td>Capacidade de carga</td><td>{{ "%.0f kg"|format(maquina.capacidade_carga_kg) if maquina and maquina.capacidade_carga_kg is not none else "não informado" }}</td></tr>
+        <tr><td>Ano de instalação</td><td>{{ (maquina.ano_instalacao if maquina else none) or "não informado" }}</td></tr>
+        <tr><td>Setor/localização</td><td>{{ (maquina.setor_localizacao if maquina else none) or "não informado" }}</td></tr>
+        <tr><td>Responsável técnico</td><td>{{ (maquina.responsavel_tecnico if maquina else none) or "não informado" }}</td></tr>
+        <tr><td>Observações técnicas</td><td>{{ (maquina.observacoes_tecnicas if maquina else none) or "não informado" }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid grid-2">
+    {% for h in horizontes %}
+    <div class="card">
+      <div class="stat-rotulo">Probabilidade de falha em {{ h }} dias</div>
+      <div class="stat-valor">{{ "%.1f"|format(100 * snapshot["prob_falha_" ~ h ~ "d"]) }}%</div>
+      <span class="badge {{ 'badge-alerta' if snapshot["classe_falha_" ~ h ~ "d"] else 'badge-normal' }}">
+        {{ "Acima do threshold operacional" if snapshot["classe_falha_" ~ h ~ "d"] else "Abaixo do threshold operacional" }}
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="aviso">
+    Data sugerida de atenção:
+    {% if snapshot.data_sugerida_alerta %}
+      <strong>{{ snapshot.data_sugerida_alerta|data_br }}</strong> —
+    {% else %}
+      <strong>nenhuma</strong> —
+    {% endif %}
+    {{ frase_data_sugerida }}
+    Data <strong>derivada</strong> das probabilidades acima, não é uma nova previsão de modelo.
+  </div>
+
+  <div class="card">
+    <h2>Componentes estimados deste equipamento</h2>
+    <p class="muted">
+      Estimativa por palavra-chave sobre a descrição da OS, só para eventos de falha deste
+      equipamento — ver <a href="/componentes">catálogo completo de componentes</a>. Clique numa
+      linha para ver as descrições reais que geraram a classificação.
+    </p>
+    {% if componentes_com_exemplos %}
+      <table>
+        <thead><tr><th>Componente</th><th>Ocorrências</th><th>%</th></tr></thead>
+        <tbody>
+          {% for c in componentes_com_exemplos %}
+            <tr><td colspan="3" style="padding:0; border:none;">
+              <details>
+                <summary style="padding:8px 10px; cursor:pointer;">
+                  {{ c.componente }} — {{ c.ocorrencias }} ({{ "%.1f"|format(c.percentual) }}%)
+                </summary>
+                <table style="margin:0 0 10px 20px; width:calc(100% - 20px);">
+                  <tbody>
+                    {% for ex in c.exemplos %}
+                      <tr><td style="width:90px;">{{ ex.inicio|data_br }}</td><td>{{ ex.descricao_tarefa or "—" }}</td></tr>
+                    {% else %}
+                      <tr><td class="muted">Sem descrição disponível.</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </details>
+            </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">Este equipamento ainda não tem eventos de falha registrados.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Indicadores usados pelo modelo</h2>
+    <table>
+      <tbody>
+        <tr><td>Tempo desde a última falha</td><td>{{ snapshot.tempo_desde_ultima_falha if snapshot.tempo_desde_ultima_falha is not none else "sem falha registrada" }} dias</td></tr>
+        <tr><td>Tempo médio de reparo histórico</td><td>{{ "%.2f"|format(snapshot.tempo_medio_reparo) }} h</td></tr>
+        <tr><td>Eventos no histórico</td><td>{{ snapshot.n_eventos_historico }}</td></tr>
+        <tr><td>Preventivas nos últimos 90 dias</td><td>{{ snapshot.contagem_preventivas_recentes }}</td></tr>
+        <tr><td>Falhas nos últimos 90 dias</td><td>{{ snapshot.freq_falhas_90d }}</td></tr>
+        <tr><td>Falhas nos últimos 180 dias</td><td>{{ snapshot.freq_falhas_180d }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Histórico de manutenção</h2>
+    <img class="grafico" src="data:image/png;base64,{{ grafico }}">
+  </div>
+
+  <div class="card">
+    <h2>Eventos ({{ eventos|length }})</h2>
+    <p class="muted">
+      "Componente estimado" é uma estimativa por palavra-chave sobre o texto livre da OS, calculada
+      só para eventos de falha — ver <a href="/componentes">cadastro de componentes</a>.
+    </p>
+    <table>
+      <thead>
+        <tr><th>Início</th><th>Fim</th><th>Tipo</th><th>Falha</th><th>HH Apropriado</th><th>Componente estimado</th></tr>
+      </thead>
+      <tbody>
+        {% for ev in eventos %}
+          <tr>
+            <td>{{ ev.inicio|data_br }}</td>
+            <td>{{ ev.fim|data_br }}</td>
+            <td>{{ ev.tipo_manutencao|tipo_desc }}</td>
+            <td>{{ "Sim" if ev.is_falha else "Não" }}</td>
+            <td>{{ "%.2f"|format(ev.hh_apropriado) }}</td>
+            <td>{{ ev.componente_estimado or "—" }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

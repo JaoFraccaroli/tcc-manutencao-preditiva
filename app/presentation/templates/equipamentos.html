@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Equipamentos — Manutenção Preditiva{% endblock %}
+{% block content %}
+  <h1>Equipamentos</h1>
+  <p class="muted">
+    {{ total }} equipamentos. Ordenado por {{ ordenar_por }} ({{ direcao }}) —
+    clique em uma coluna para reordenar. A ordem não representa prioridade
+    de intervenção, é só um critério de exibição escolhido por você.
+  </p>
+  <div class="aviso">
+    "Data sugerida de atenção" é <strong>derivada</strong> das probabilidades ao lado —
+    é a data em que a probabilidade estimada cruza o limiar de
+    {{ "%.0f"|format(100 * limiar_alerta) }}% pela primeira vez (30, 60 ou 90 dias). Não é uma
+    nova previsão de modelo, nem uma data determinística de quando a falha vai ocorrer.
+  </div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          {% for chave, rotulo in colunas %}
+            <th>
+              <a href="?sort={{ chave }}&dir={{ 'desc' if ordenar_por == chave and direcao == 'asc' else 'asc' }}">
+                {{ rotulo }}
+              </a>
+            </th>
+          {% endfor %}
+          <th>Data sugerida de atenção</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for eq in equipamentos %}
+          <tr>
+            <td><a href="/equipamentos/{{ eq.tag_code }}">{{ eq.tag_code }}</a></td>
+            {% for h in horizontes %}
+              <td>{{ "%.1f"|format(100 * eq["prob_falha_" ~ h ~ "d"]) }}%</td>
+            {% endfor %}
+            <td>
+              {% if eq.data_sugerida_alerta %}
+                {{ eq.data_sugerida_alerta|data_br }} <span class="muted">({{ eq.horizonte_sugerido|int }}d)</span>
+              {% else %}
+                <span class="muted">sem alerta nos horizontes avaliados</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="paginacao">
+      {% if pagina > 1 %}
+        <a href="?sort={{ ordenar_por }}&dir={{ direcao }}&page={{ pagina - 1 }}">&larr; Anterior</a>
+      {% endif %}
+      <span class="muted">Página {{ pagina }} de {{ total_paginas }}</span>
+      {% if pagina < total_paginas %}
+        <a href="?sort={{ ordenar_por }}&dir={{ direcao }}&page={{ pagina + 1 }}">Próxima &rarr;</a>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

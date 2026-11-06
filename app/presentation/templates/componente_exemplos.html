@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{{ nome }} — Exemplos — Manutenção Preditiva{% endblock %}
+{% block content %}
+  <a class="voltar" href="/componentes">&larr; Voltar para componentes</a>
+  <h1>Exemplos de descrição — {{ nome }}</h1>
+  <p class="muted">
+    Amostra das descrições reais de eventos de falha que bateram com os termos de busca deste
+    componente (mais recentes primeiro) — demonstra concretamente de onde vem a classificação
+    "{{ nome }}", em vez de deixar a distribuição como um número solto. Texto já anonimizado
+    (sem TAG real, sem nome de técnico/empresa).
+  </p>
+
+  <div class="card">
+    <table>
+      <thead><tr><th>Equipamento</th><th>Data</th><th>Descrição da OS</th></tr></thead>
+      <tbody>
+        {% for ex in exemplos %}
+          <tr>
+            <td><a href="/equipamentos/{{ ex.tag_code }}">{{ ex.tag_code }}</a></td>
+            <td>{{ ex.inicio|data_br }}</td>
+            <td>{{ ex.descricao_tarefa or "—" }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="3" class="muted">Nenhum evento encontrado para esta categoria.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

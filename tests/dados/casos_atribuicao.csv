@@ -1,0 +1,13 @@
+descricao_original;descricao_esperada;regra
+porta não abre - Zebedeu;porta não abre;nome depois do último hífen
+porta não abre -Zebedeu;porta não abre;hífen sem espaço
+monta carga com problema (ok Zebedeu);monta carga com problema;parênteses no final
+monta carga com problema (Zebedeu);monta carga com problema;parênteses só com o nome
+ajustada a porta ok Zebedeu;ajustada a porta;"ok Fulano" no final
+ajustada a porta OK ZEBEDEU;ajustada a porta;"OK" em maiúsculas
+ajustada a porta o.k. Zebedeu;ajustada a porta;"o.k." com pontos
+sensor trocado - Manutec Ficticia;sensor trocado;empresa depois do hífen
+  porta travada   ;porta travada;espaços nas pontas
+porta travada;porta travada;sem atribuição nada muda
+Teste ok;Teste ok;"ok" sozinho no final não é nome
+cabo de aço;cabo de aço;sem atribuição nada muda

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Editar {{ maquina.tag_code }} — Manutenção Preditiva{% endblock %}
+{% block content %}
+  <a class="voltar" href="/equipamentos/{{ maquina.tag_code }}">&larr; Voltar para o equipamento</a>
+  <h1>Editar cadastro — {{ maquina.tag_code }}</h1>
+  <p class="muted">
+    Primeiro evento, último evento e total de eventos vêm da planilha histórica (ingestão) e não
+    são editáveis aqui. Os demais campos são cadastro manual — briefing complementar 4, seção 2.
+  </p>
+
+  <div class="card">
+    <table>
+      <tbody>
+        <tr><td>Primeiro evento</td><td>{{ maquina.primeiro_evento|data_br }}</td></tr>
+        <tr><td>Último evento</td><td>{{ maquina.ultimo_evento|data_br }}</td></tr>
+        <tr><td>Total de eventos</td><td>{{ maquina.total_eventos }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <form class="form-cadastro" method="post" action="/maquinas/{{ maquina.tag_code }}/editar">
+      <div>
+        <label for="tipo">Nome/apelido do equipamento *</label>
+        <input type="text" id="tipo" name="tipo" required value="{{ maquina.tipo or '' }}">
+      </div>
+      <div>
+        <label for="fabricante">Fabricante do monta-cargas</label>
+        <input type="text" id="fabricante" name="fabricante" value="{{ maquina.fabricante or '' }}">
+      </div>
+      <div>
+        <label for="modelo">Modelo</label>
+        <input type="text" id="modelo" name="modelo" value="{{ maquina.modelo or '' }}">
+      </div>
+      <div>
+        <label for="capacidade_carga_kg">Capacidade de carga (kg)</label>
+        <input type="text" id="capacidade_carga_kg" name="capacidade_carga_kg"
+               value="{{ maquina.capacidade_carga_kg if maquina.capacidade_carga_kg is not none else '' }}">
+      </div>
+      <div>
+        <label for="ano_instalacao">Ano de instalação</label>
+        <input type="text" id="ano_instalacao" name="ano_instalacao"
+               value="{{ maquina.ano_instalacao if maquina.ano_instalacao is not none else '' }}">
+      </div>
+      <div>
+        <label for="setor_localizacao">Setor/localização</label>
+        <input type="text" id="setor_localizacao" name="setor_localizacao" value="{{ maquina.setor_localizacao or '' }}">
+      </div>
+      <div>
+        <label for="status">Status *</label>
+        <select id="status" name="status">
+          {% for s in status_opcoes %}
+            <option value="{{ s }}" {{ "selected" if s == maquina.status else "" }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="responsavel_tecnico">Responsável técnico</label>
+        <input type="text" id="responsavel_tecnico" name="responsavel_tecnico" value="{{ maquina.responsavel_tecnico or '' }}">
+      </div>
+      <div>
+        <label for="observacoes_tecnicas">Observações técnicas</label>
+        <textarea id="observacoes_tecnicas" name="observacoes_tecnicas" rows="4">{{ maquina.observacoes_tecnicas or '' }}</textarea>
+      </div>
+      <button type="submit">Salvar alterações</button>
+    </form>
+  </div>
+{% endblock %}

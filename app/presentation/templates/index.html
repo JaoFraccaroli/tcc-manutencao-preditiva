@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Visão geral — Manutenção Preditiva{% endblock %}
+{% block content %}
+  <h1>Visão geral</h1>
+  <p class="muted">
+    Dados de manutenção concluída de {{ periodo_inicio|data_br }} a {{ periodo_fim|data_br }}.
+    Indicadores calculados com base na data mais recente disponível ({{ data_referencia|data_br }}).
+  </p>
+
+  <div class="aviso">
+    Esta aplicação mostra indicadores e probabilidades estimadas de falha. Ela não
+    ordena nem recomenda automaticamente quais equipamentos inspecionar — essa
+    decisão é do usuário.
+  </div>
+
+  <div class="card">
+    <h2>Resumo por equipamento</h2>
+    <p class="muted">
+      Máquina, componente identificado mais frequente e data sugerida de atenção — com o motivo —
+      num lugar só. O componente é uma <strong>estimativa por palavra-chave</strong> sobre a
+      descrição da OS: o percentual usa como denominador o total de falhas do equipamento, e a
+      parcela sem componente identificado ("não identificado") é mostrada à parte, nunca como
+      destaque. Clique no TAG para o detalhe completo (histórico, todas as categorias com
+      exemplos reais, etc.).
+    </p>
+    <table>
+      <thead>
+        <tr><th>TAG</th><th>Nome</th><th>Status</th><th>Componente identificado mais frequente</th><th>Falhas sem componente identificado</th><th>Data sugerida de atenção</th></tr>
+      </thead>
+      <tbody>
+        {% for r in resumo_equipamentos %}
+          <tr>
+            <td><a href="/equipamentos/{{ r.tag_code }}">{{ r.tag_code }}</a></td>
+            <td>{{ r.nome }}</td>
+            <td>{{ r.status }}</td>
+            <td>{{ r.componente_top }}</td>
+            <td>{{ r.sem_componente }}</td>
+            <td>
+              {% if r.data_sugerida_alerta %}
+                <strong>{{ r.data_sugerida_alerta|data_br }}</strong> —
+              {% else %}
+                <span class="muted">sem alerta</span> —
+              {% endif %}
+              <span class="muted">{{ r.frase_data_sugerida }}</span>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid grid-4">
+    <div class="card">
+      <div class="stat-valor">{{ total_equipamentos }}</div>
+      <div class="stat-rotulo">Equipamentos monitorados</div>
+    </div>
+    <div class="card">
+      <div class="stat-valor">{{ total_eventos }}</div>
+      <div class="stat-rotulo">Eventos de manutenção concluídos</div>
+    </div>
+    <div class="card">
+      <div class="stat-valor">{{ total_falhas }}</div>
+      <div class="stat-rotulo">Falhas registradas (MC + CP)</div>
+    </div>
+    <div class="card">
+      <div class="stat-valor">{{ "%.1f"|format(100 * total_falhas / total_eventos) }}%</div>
+      <div class="stat-rotulo">Proporção de eventos que são falha</div>
+    </div>
+  </div>
+
+  <div class="grid grid-2">
+    {% for h, grafico in graficos_prob %}
+    <div class="card">
+      <h2>Distribuição da probabilidade de falha — {{ h }} dias</h2>
+      <img class="grafico" src="data:image/png;base64,{{ grafico }}">
+    </div>
+    {% endfor %}
+    <div class="card">
+      <h2>Eventos por tipo de manutenção</h2>
+      <img class="grafico" src="data:image/png;base64,{{ grafico_tipo }}">
+    </div>
+  </div>
+{% endblock %}

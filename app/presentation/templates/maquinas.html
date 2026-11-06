@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Máquinas — Manutenção Preditiva{% endblock %}
+{% block content %}
+  <h1>Cadastro de máquinas</h1>
+  <p class="muted">
+    Equipamentos monitorados no escopo atual, com o TAG já anonimizado (briefing seção 4). Para
+    o detalhe de risco/histórico de cada um, veja a <a href="/equipamentos">tela de equipamentos</a>.
+  </p>
+  <div class="aviso">
+    Os campos abaixo de "Fabricante" em diante são <strong>cadastro manual</strong>, preenchidos
+    por quem usa a aplicação — não vêm da planilha histórica de manutenção e não entram em
+    nenhuma feature do modelo preditivo. Ficam em branco ("não informado") até alguém preencher;
+    nunca são inventados.
+  </div>
+
+  <details class="form-nova">
+    <summary>+ Cadastrar nova máquina</summary>
+    <form class="form-cadastro" method="post" action="/maquinas">
+      <div>
+        <label for="tag_code">Código (TAG) *</label>
+        <input type="text" id="tag_code" name="tag_code" required placeholder="ex.: EQ007">
+      </div>
+      <div>
+        <label for="tipo">Nome/apelido do equipamento *</label>
+        <input type="text" id="tipo" name="tipo" required placeholder="ex.: Monta-carga">
+      </div>
+      <div>
+        <label for="fabricante">Fabricante do monta-cargas</label>
+        <input type="text" id="fabricante" name="fabricante">
+      </div>
+      <div>
+        <label for="modelo">Modelo</label>
+        <input type="text" id="modelo" name="modelo">
+      </div>
+      <div>
+        <label for="capacidade_carga_kg">Capacidade de carga (kg)</label>
+        <input type="text" id="capacidade_carga_kg" name="capacidade_carga_kg" placeholder="ex.: 500">
+      </div>
+      <div>
+        <label for="ano_instalacao">Ano de instalação</label>
+        <input type="text" id="ano_instalacao" name="ano_instalacao" placeholder="ex.: 2015">
+      </div>
+      <div>
+        <label for="setor_localizacao">Setor/localização</label>
+        <input type="text" id="setor_localizacao" name="setor_localizacao">
+      </div>
+      <div>
+        <label for="status">Status *</label>
+        <select id="status" name="status">
+          {% for s in status_opcoes %}
+            <option value="{{ s }}" {{ "selected" if s == "Ativo" else "" }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="responsavel_tecnico">Responsável técnico</label>
+        <input type="text" id="responsavel_tecnico" name="responsavel_tecnico">
+      </div>
+      <div>
+        <label for="observacoes_tecnicas">Observações técnicas</label>
+        <textarea id="observacoes_tecnicas" name="observacoes_tecnicas" rows="3"></textarea>
+      </div>
+      <button type="submit">Cadastrar máquina</button>
+    </form>
+  </details>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr><th>TAG</th><th>Nome</th><th>Status</th><th>Primeiro evento</th><th>Último evento</th><th>Total de eventos</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for m in maquinas %}
+          <tr>
+            <td><a href="/equipamentos/{{ m.tag_code }}">{{ m.tag_code }}</a></td>
+            <td>{{ m.tipo or "—" }}</td>
+            <td>{{ m.status or "—" }}</td>
+            <td>{{ m.primeiro_evento|data_br }}</td>
+            <td>{{ m.ultimo_evento|data_br }}</td>
+            <td>{{ m.total_eventos }}</td>
+            <td><a href="/maquinas/{{ m.tag_code }}/editar">editar</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
