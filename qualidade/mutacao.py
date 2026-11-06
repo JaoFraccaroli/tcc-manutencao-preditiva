@@ -131,16 +131,18 @@ def main() -> int:
     resultados = []
     for mutante in MUTANTES:
         caminho = RAIZ / mutante.arquivo
-        original = caminho.read_text(encoding="utf-8")
+        # Lê e grava em bytes para preservar o fim de linha original (CRLF no Windows)
+        bytes_originais = caminho.read_bytes()
+        original = bytes_originais.decode("utf-8").replace("\r\n", "\n")
         if original.count(mutante.original) != 1:
             print(f"[ERRO] trecho do mutante '{mutante.nome}' não encontrado (ou repetido) em {mutante.arquivo}")
             return 1
         inicio = time.time()
         try:
-            caminho.write_text(original.replace(mutante.original, mutante.mutado), encoding="utf-8")
+            caminho.write_bytes(original.replace(mutante.original, mutante.mutado).encode("utf-8"))
             morto = not rodar_testes()
         finally:
-            caminho.write_text(original, encoding="utf-8")
+            caminho.write_bytes(bytes_originais)
         resultados.append((mutante, morto))
         situacao = "MORTO     " if morto else "SOBREVIVEU"
         print(f"[{situacao}] {mutante.nome} ({mutante.arquivo}, {time.time() - inicio:.1f}s)")
